@@ -103,5 +103,7 @@ osascript = "0.3"
 sctk = { package = "smithay-client-toolkit", version = "0.20.0", default-features = false, features = [
     "calloop",
 ] }
+# Keep this lockfile-free crate resolvable by its Rust 1.75 CI toolchain.
+wayland-protocols = "=0.32.9"
 users = { version = "0.11" }
 x11 = "2.21"
