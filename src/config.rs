@@ -52,6 +52,11 @@ pub const REG_INTERVAL: i64 = 15_000;
 pub const COMPRESS_LEVEL: i32 = 3;
 const SERIAL: i32 = 3;
 
+#[cfg(feature = "tossp-client")]
+const DEFAULT_APP_NAME: &str = "TossPig";
+#[cfg(not(feature = "tossp-client"))]
+const DEFAULT_APP_NAME: &str = "RustDesk";
+
 #[cfg(target_os = "macos")]
 lazy_static::lazy_static! {
     pub static ref ORG: RwLock<String> = RwLock::new("com.carriez".to_owned());
@@ -69,7 +74,7 @@ lazy_static::lazy_static! {
     static ref ONLINE: Mutex<HashMap<String, i64>> = Default::default();
     pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("".to_owned());
     pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = Default::default();
-    pub static ref APP_NAME: RwLock<String> = RwLock::new("RustDesk".to_owned());
+    pub static ref APP_NAME: RwLock<String> = RwLock::new(DEFAULT_APP_NAME.to_owned());
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
@@ -114,7 +119,17 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
+#[cfg(feature = "tossp-client")]
+include!(concat!(env!("OUT_DIR"), "/tossp_client_defaults.rs"));
+
+#[cfg(feature = "tossp-client")]
+pub const RENDEZVOUS_SERVERS: &[&str] = &[TOSSP_RENDEZVOUS_SERVER];
+#[cfg(not(feature = "tossp-client"))]
 pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
+
+#[cfg(feature = "tossp-client")]
+pub const RS_PUB_KEY: &str = TOSSP_RS_PUB_KEY;
+#[cfg(not(feature = "tossp-client"))]
 pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
