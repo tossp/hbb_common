@@ -53,8 +53,7 @@ thiserror = "1.0"
 httparse = "1.10"
 base64 = "0.22"
 # Keep this lockfile-free crate resolvable by its Rust 1.75 CI toolchain.
-idna_adapter = "=1.2.0"
-url = "2.5"
+url = "=2.5.2"
 sha2 = "0.10"
 whoami = "1.5"
 
