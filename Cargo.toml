@@ -80,6 +80,8 @@ machine-uid = { git = "https://github.com/rustdesk-org/machine-uid" }
 
 [build-dependencies]
 base64 = "0.22"
+# Keep protobuf-codegen -> which -> home compatible with RustDesk's rust-version=1.75 and root lock.
+home = "=0.5.9"
 protobuf-codegen = { version = "3.7" }
 
 [dev-dependencies]
