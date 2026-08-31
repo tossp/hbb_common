@@ -31,6 +31,8 @@ fn tossp_client_defaults() -> Result<(), &'static str> {
 fn is_fqdn(value: &str) -> bool {
     if value.len() > 253
         || !value.contains('.')
+        || value.parse::<std::net::IpAddr>().is_ok()
+        || value.bytes().any(|byte| byte.is_ascii_uppercase())
         || value.chars().any(|c| c.is_whitespace() || c.is_control())
     {
         return false;

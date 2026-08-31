@@ -1,0 +1,68 @@
+name: TossPig client checks
+
+on:
+  push:
+    branches:
+      - feat/tossp-client-defaults
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: "1.75"
+
+      - name: Check stock configuration
+        shell: bash
+        run: env -u RENDEZVOUS_SERVER -u RS_PUB_KEY cargo check
+
+      - name: Check TossPig test configuration
+        shell: bash
+        env:
+          RENDEZVOUS_SERVER: rd.tossp.com
+          # Public 32-byte all-zero test key; never a production key.
+          RS_PUB_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: cargo check --features tossp-client
+
+      - name: Reject invalid TossPig build configuration without echoing input
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+
+          expect_rejected() {
+            local case_name="$1"
+            local input="$2"
+            shift 2
+            set +e
+            local output
+            output="$("$@" 2>&1)"
+            local status=$?
+            set -e
+            if [[ "$status" -eq 0 ]]; then
+              echo "Expected ${case_name} to fail"
+              exit 1
+            fi
+            if [[ "$output" == *"$input"* ]]; then
+              echo "Build error echoed ${case_name} input"
+              exit 1
+            fi
+          }
+
+          missing_key_server='rd.missing-key.example.com'
+          expect_rejected missing-key "$missing_key_server" env -u RS_PUB_KEY "RENDEZVOUS_SERVER=$missing_key_server" cargo check --features tossp-client
+          expect_rejected uppercase-fqdn 'RD.TOSSP.COM' env 'RENDEZVOUS_SERVER=RD.TOSSP.COM' "RS_PUB_KEY=$test_key" cargo check --features tossp-client
+          expect_rejected ipv4-literal '127.0.0.1' env 'RENDEZVOUS_SERVER=127.0.0.1' "RS_PUB_KEY=$test_key" cargo check --features tossp-client
+          expect_rejected invalid-base64 'invalid-base64!' env 'RENDEZVOUS_SERVER=rd.tossp.com' 'RS_PUB_KEY=invalid-base64!' cargo check --features tossp-client
+          expect_rejected invalid-key-length 'AAAA' env 'RENDEZVOUS_SERVER=rd.tossp.com' 'RS_PUB_KEY=AAAA' cargo check --features tossp-client
